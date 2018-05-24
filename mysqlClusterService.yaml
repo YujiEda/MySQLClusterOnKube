@@ -1,0 +1,17 @@
+apiVersion: apps/v1beta1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+  namespace: MysqlCluster
+spec:
+  ports:
+    - port: 3306
+    - port: 1186
+    - port: 2202
+    - port: 33060
+  selector:
+    app: mysql
+    tier: mysql
+  clusterIP: None
