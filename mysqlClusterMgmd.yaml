@@ -1,0 +1,31 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: management1
+  labels:
+    app: mysql
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql/mysql-cluster
+        name: management1
+        env:
+         - name: MYSQL_RANDOM_ROOT_PASSWORD
+           value: true
+        command: ndb_mgmd
+        ports:
+        - containerPort: 3306
+          name: mysql
+        - containerPort: 1186
+          name: mysql-rep      
+        - containerPort: 2202
+          name: cluster-mgmt  
+        - containerPort: 33060
+          name: mysqlx
