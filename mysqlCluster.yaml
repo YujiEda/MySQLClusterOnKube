@@ -1,0 +1,120 @@
+apiVersion: apps/v1beta1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+  namespace: MysqlCluster
+spec:
+  ports:
+    - port: 3306
+    - port: 1186
+    - port: 2202
+    - port: 33060
+  selector:
+    app: mysql
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mysql1
+  labels:
+    app: mysql
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql/mysql-cluster
+        name: mysql1
+        env:
+         - name: MYSQL_RANDOM_ROOT_PASSWORD
+           value: true
+        command: mysqld
+        ports:
+        - containerPort: 3306
+          name: mysql
+        - containerPort: 1186
+          name: mysql-rep      
+        - containerPort: 2202
+          name: cluster-mgmt  
+        - containerPort: 33060
+          name: mysqlx
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mysql2
+  labels:
+    app: mysql
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql/mysql-cluster
+        name: mysql2
+        env:
+         - name: MYSQL_RANDOM_ROOT_PASSWORD
+           value: true
+        command: mysqld
+        ports:
+        - containerPort: 3306
+          name: mysql
+        - containerPort: 1186
+          name: mysql-rep      
+        - containerPort: 2202
+          name: cluster-mgmt  
+        - containerPort: 33060
+          name: mysqlx
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: carts-db
+  labels:
+    name: carts-db
+  namespace: sock-shop
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: carts-db
+    spec:
+      containers:
+      - name: carts-db
+        image: mongo
+        ports:
+        - name: mongo
+          containerPort: 27017
+        securityContext:
+          capabilities:
+            drop:
+              - all
+            add:
+              - CHOWN
+              - SETGID
+              - SETUID
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+      nodeSelector:
+        beta.kubernetes.io/os: linux
