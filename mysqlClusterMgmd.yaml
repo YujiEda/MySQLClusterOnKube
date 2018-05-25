@@ -2,6 +2,7 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: management1
+  namespace: mysql-cluster
   labels:
     app: mysql
 spec:
@@ -18,14 +19,14 @@ spec:
         name: management1
         env:
          - name: MYSQL_RANDOM_ROOT_PASSWORD
-           value: true
-        command: ndb_mgmd
+           value: "true"
+        command: ["ndb_mgmd"]
         ports:
         - containerPort: 3306
           name: mysql
         - containerPort: 1186
-          name: mysql-rep      
+          name: mysql-rep
         - containerPort: 2202
-          name: cluster-mgmt  
+          name: cluster-mgmt
         - containerPort: 33060
           name: mysqlx
